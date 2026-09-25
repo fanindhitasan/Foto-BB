@@ -52,8 +52,8 @@
   async function renderGuide(ctx){const xml=new XMLSerializer().serializeToString(guide);const svg=new Blob([xml],{type:'image/svg+xml'});const url=URL.createObjectURL(svg);try{const img=new Image();await new Promise((resolve,reject)=>{img.onload=resolve;img.onerror=reject;img.src=url});ctx.drawImage(img,0,0,1024,1536)}finally{URL.revokeObjectURL(url)}}
   async function getSegmenter(){
     if(!segmenterPromise)segmenterPromise=(async()=>{
-      const {FilesetResolver,ImageSegmenter}=await import('https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@1.0.1/vision_bundle.mjs');
-      const vision=await FilesetResolver.forVisionTasks('https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@1.0.1/wasm');
+      const {FilesetResolver,ImageSegmenter}=await import('https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.22-rc.20250304/vision_bundle.mjs');
+      const vision=await FilesetResolver.forVisionTasks('https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.22-rc.20250304/wasm');
       return ImageSegmenter.createFromOptions(vision,{baseOptions:{modelAssetPath:'https://storage.googleapis.com/mediapipe-models/image_segmenter/selfie_segmenter/float16/latest/selfie_segmenter.tflite',delegate:'CPU'},runningMode:'IMAGE',outputCategoryMask:false,outputConfidenceMasks:true});
     })().catch(error=>{segmenterPromise=null;throw error});
     return segmenterPromise;
@@ -91,7 +91,7 @@
       const ctx=out.getContext('2d');ctx.drawImage(base,0,0);if(include.checked)await renderGuide(ctx);
       if(thisRevision!==revision)return;
       currentPhoto=out;shot.src=out.toDataURL('image/png');stage.classList.remove('show-guide');setStatus('');
-    }catch(error){if(thisRevision!==revision)return;white.checked=false;currentPhoto=document.createElement('canvas');currentPhoto.width=1024;currentPhoto.height=1536;const ctx=currentPhoto.getContext('2d');ctx.drawImage(raw,0,0);if(include.checked)await renderGuide(ctx);shot.src=currentPhoto.toDataURL('image/png');stage.classList.remove('show-guide');setStatus('Latar putih belum dapat diproses. Periksa koneksi internet, lalu coba lagi.')}finally{if(thisRevision===revision){capture.disabled=false;white.disabled=false;include.disabled=false}}
+    }catch(error){if(thisRevision!==revision)return;console.error('makeWhiteBackground gagal:',error);white.checked=false;currentPhoto=document.createElement('canvas');currentPhoto.width=1024;currentPhoto.height=1536;const ctx=currentPhoto.getContext('2d');ctx.drawImage(raw,0,0);if(include.checked)await renderGuide(ctx);shot.src=currentPhoto.toDataURL('image/png');stage.classList.remove('show-guide');setStatus('Latar putih belum dapat diproses. Periksa koneksi internet, lalu coba lagi.')}finally{if(thisRevision===revision){capture.disabled=false;white.disabled=false;include.disabled=false}}
   }
   function download(canvas,name){canvas.toBlob(blob=>{if(!blob){setStatus('Foto belum dapat disimpan. Coba lagi.');return}const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),30000)},'image/png')}
   start.onclick=()=>{if(stream&&!stage.classList.contains('review')){stop();video.srcObject=null;stage.classList.remove('live');start.textContent='Nyalakan kamera';capture.disabled=true;flip.disabled=true;setStatus('Kamera dimatikan.')}else camera()};
