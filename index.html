@@ -12,10 +12,10 @@
   </style>
 </head>
 <body>
-<header><div class="brand"><span class="mark">◎</span> PANDUAN POTRET</div><div class="headnote">Posisikan wajah • Rapikan bahu • Ambil foto</div></header>
+<header><div class="brand"><span class="mark">◎</span> PANDUAN POTRET FOTO PROFIL BB</div><div class="headnote">Posisikan wajah • Rapikan bahu • Ambil foto</div></header>
 <main>
   <section>
-    <div class="intro"><div class="eyebrow">Kamera dengan panduan postur</div><h1>Foto lebih rapi, sejak di kamera.</h1><p>Sejajarkan kepala dan bahu dengan garis putus-putus, lalu ambil foto saat posisi sudah pas.</p></div>
+    <div class="intro"><div class="eyebrow">Kamera dengan panduan postur</div><h1>Foto lebih rapi.</h1><p>Sejajarkan kepala dan bahu dengan garis putus-putus, lalu ambil foto saat posisi sudah pas.</p></div>
     <div class="stage-wrap">
       <div class="stage" id="stage">
         <video id="video" autoplay muted playsinline aria-label="Pratinjau kamera"></video>
@@ -33,7 +33,7 @@
       <p class="hint" id="hint">Izinkan akses kamera saat diminta. Foto diproses di perangkat Anda.</p><p class="status" id="status" role="status" aria-live="polite"></p>
     </div>
   </section>
-  <aside class="panel"><div class="section-title"><span>✦</span> Cara menggunakan</div><ol class="steps"><li><span class="num">1</span><div><strong>Nyalakan kamera</strong>Gunakan kamera depan untuk melihat posisi diri seperti cermin.</div></li><li><span class="num">2</span><div><strong>Ikuti garis panduan</strong>Tempatkan kepala dalam lengkungan dan samakan tinggi kedua bahu.</div></li><li><span class="num">3</span><div><strong>Ambil dan simpan</strong>Periksa hasilnya, ulangi bila perlu, lalu unduh foto.</div></li></ol><div class="divider"></div><label class="option"><input id="whiteBackground" type="checkbox"><span>Ubah latar belakang menjadi putih<small>Setelah foto diambil, orang dipisahkan dari latar secara otomatis. Koneksi internet diperlukan untuk memuat model.</small></span></label><label class="option" style="margin-top:14px"><input id="greenScreen" type="checkbox" checked><span>Koreksi green screen<small>Kurangi pantulan hijau di tepi rambut dan bahu saat memakai latar putih. Matikan jika pakaian hijau ikut berubah warna.</small></span></label><label class="upload">Atau gunakan foto yang sudah ada <input id="file" type="file" accept="image/*"></label><div class="privacy">Pemrosesan foto berlangsung di browser. Model pemisah latar diunduh saat pertama digunakan; foto Anda tidak dikirim ke server.<br><span id="appVersion">Versi 1.7 · Modified by SKPU</span></div></aside>
+  <aside class="panel"><div class="section-title"><span>✦</span> Cara menggunakan</div><ol class="steps"><li><span class="num">1</span><div><strong>Nyalakan kamera</strong>Gunakan kamera depan untuk melihat posisi diri seperti cermin.</div></li><li><span class="num">2</span><div><strong>Ikuti garis panduan</strong>Tempatkan kepala dalam lengkungan dan samakan tinggi kedua bahu.</div></li><li><span class="num">3</span><div><strong>Ambil dan simpan</strong>Periksa hasilnya, klik “Unduh foto”, lalu isi nama file sebelum menyimpan.</div></li></ol><div class="divider"></div><label class="option"><input id="whiteBackground" type="checkbox"><span>Ubah latar belakang menjadi putih<small>Setelah foto diambil, orang dipisahkan dari latar secara otomatis. Koneksi internet diperlukan untuk memuat model.</small></span></label><label class="option" style="margin-top:14px"><input id="greenScreen" type="checkbox" checked><span>Koreksi green screen<small>Kurangi pantulan hijau di tepi rambut dan bahu saat memakai latar putih. Matikan jika pakaian hijau ikut berubah warna.</small></span></label><label class="upload">Atau gunakan foto yang sudah ada <input id="file" type="file" accept="image/*"></label><div class="privacy">Pemrosesan foto berlangsung di browser. Model pemisah latar diunduh saat pertama digunakan; foto Anda tidak dikirim ke server.<br><span id="appVersion">Versi 1.8 · Modified by SKPU</span></div></aside>
 </main>
 <script>
 (()=>{
@@ -201,7 +201,23 @@
       currentPhoto=out;shot.src=out.toDataURL('image/png');setStatus('');
     }catch(error){if(thisRevision!==revision)return;console.error('Pemisahan latar gagal:',error);white.checked=false;currentPhoto=document.createElement('canvas');currentPhoto.width=1024;currentPhoto.height=1536;const ctx=currentPhoto.getContext('2d');ctx.drawImage(raw,0,0);shot.src=currentPhoto.toDataURL('image/png');setStatus(error.message?.startsWith('Model ')||error.message?.startsWith('Format mask')?error.message:'Latar putih belum dapat diproses. Coba foto lain atau jaringan berbeda.')}finally{if(thisRevision===revision){capture.disabled=false;white.disabled=false;green.disabled=false;start.disabled=false;flip.disabled=!stream;$('file').disabled=false}}
   }
-  function download(canvas,name){canvas.toBlob(blob=>{if(!blob){setStatus('Foto belum dapat disimpan. Coba lagi.');return}const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),30000)},'image/png')}
+  function download(canvas,name){
+    const suggested=name.replace(/\.png$/i,'');
+    const entered=window.prompt('Masukkan nama foto sebelum diunduh (tanpa .png):',suggested);
+    if(entered===null)return;
+    let filename=entered.trim().replace(/[<>:"/\\|?*\u0000-\u001f\u007f]/g,'-')
+      .replace(/(?:\.png)+$/i,'').replace(/^[. ]+|[. ]+$/g,'').slice(0,120).replace(/[. ]+$/g,'');
+    if(!filename){setStatus('Nama foto belum diisi. Klik “Unduh foto” dan masukkan nama.');return}
+    if(/^(con|prn|aux|nul|com[1-9]|lpt[1-9])(?:\.|$)/i.test(filename))filename='foto-'+filename;
+    filename+='.png';
+    canvas.toBlob(blob=>{
+      if(!blob){setStatus('Foto belum dapat disimpan. Coba lagi.');return}
+      const url=URL.createObjectURL(blob),a=document.createElement('a');
+      a.href=url;a.download=filename;document.body.appendChild(a);a.click();a.remove();
+      setStatus('Unduhan dimulai: '+filename);
+      setTimeout(()=>URL.revokeObjectURL(url),30000);
+    },'image/png');
+  }
   start.onclick=()=>{if(stream&&!stage.classList.contains('review')){stop();video.srcObject=null;stage.classList.remove('live');start.textContent='Nyalakan kamera';capture.disabled=true;flip.disabled=true;setStatus('Kamera dimatikan.')}else camera()};
   flip.onclick=()=>{facing=facing==='user'?'environment':'user';stage.classList.toggle('rear',facing==='environment');camera()};
   capture.onclick=async()=>{if(stage.classList.contains('review')){if(currentPhoto)download(currentPhoto,'foto-potret'+(white.checked?'-latar-putih':'')+'.png');return}if(!source)return;try{if(source===video){if(!video.videoWidth)return;raw=crop(video,video.videoWidth,video.videoHeight,facing==='user')}else raw=crop(source,source.naturalWidth,source.naturalHeight,false);whitePhoto=null;currentPhoto=null;stage.classList.add('review');capture.textContent='Unduh foto';start.textContent='Ulangi foto';hint.textContent='Periksa hasil foto. Pilih “Ulangi foto” untuk kembali ke kamera.';await renderReview()}catch(e){setStatus('Foto belum dapat diproses. Coba lagi.')}};
